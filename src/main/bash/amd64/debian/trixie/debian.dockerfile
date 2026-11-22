@@ -37,9 +37,15 @@ shell ["/usr/local/bin/bash", "-c"]
 env YQ_VERSION='4.54.3'
 env PATH="${PATH}:/opt/yq-${YQ_VERSION}/bin"
 run mkdir -p "/opt/yq-${YQ_VERSION}/bin" \
- && curl -m 16 -L --url "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" \
-  -o "/opt/yq-${YQ_VERSION}/bin/yq" \
+ && curl -m 16 -L --url "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o "/opt/yq-${YQ_VERSION}/bin/yq" \
  && chmod +x "/opt/yq-${YQ_VERSION}/bin/yq" && yq --version
+
+#
+
+env RIPGREP_VERSION='15.2.0'
+run TMP_PATH="$(mktemp -d)/ripgrep-${RIPGREP_VERSION}.deb" \
+ && curl -m 16 -L --url "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep_${RIPGREP_VERSION}-1_amd64.deb" -o "${TMP_PATH}" \
+ && apt-get install --no-install-recommends -y "${TMP_PATH}" && rm "${TMP_PATH}" && rg --version
 
 #
 

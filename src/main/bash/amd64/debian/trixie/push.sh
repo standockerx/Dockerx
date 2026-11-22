@@ -121,6 +121,7 @@ for it in \
  'xxd --version' \
  'file --version' \
  'yq --version' \
+ 'rg --version' \
  ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
  if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!"; exit 1; fi
 done
