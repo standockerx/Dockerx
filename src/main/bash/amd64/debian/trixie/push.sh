@@ -167,7 +167,9 @@ echo "Push \"${DOCKERX_IMAGE}\" to \"${DOCKERX_ORIGIN}\" repository?"
 read -r YES_OR_NOT
 
 if [[ "${YES_OR_NOT}" == 'yes' ]]; then
- git add . && git commit -m "${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}" && git push
+ git -C "${DOCKERX_WORKDIR}" add . \
+  && git -C "${DOCKERX_WORKDIR}" commit -m "${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}" \
+  && git -C "${DOCKERX_WORKDIR}" push
  if [[ $? -ne 0 ]]; then echo 'Git push error!' >&2; exit 1; fi
  echo "\"${DOCKERX_IMAGE}\" pushed to \"${DOCKERX_ORIGIN}\"."
 fi
