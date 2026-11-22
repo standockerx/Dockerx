@@ -114,7 +114,6 @@ for it in \
  '/bin/bash --version && /usr/local/bin/bash --version' \
  'curl --version' \
  'openssl version' \
- 'gpg --version' \
  'zip --version' \
  'xz --version' \
  'git --version' \
@@ -122,6 +121,22 @@ for it in \
  'file --version' \
  'yq --version' \
  'rg --version' \
+ ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
+ if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!"; exit 1; fi
+done
+
+docker cp "${DOCKERX_WORKDIR}/src/main/res/key.pgp" "${DOCKERX_CONTAINER}:/usr/local/share/key.pgp"
+if [[ $? -ne 0 ]]; then
+ echo 'Copy error!'; exit 1; fi
+
+for it in \
+ 'gpg --version' \
+ '[[ -x /usr/local/bin/gpg_loopback.sh ]]' \
+ '/usr/local/bin/gpg_loopback.sh --version' \
+ 'gpg --batch --import /usr/local/share/key.pgp' \
+ 'GPG_PASSWORD=foobarbaz /usr/local/bin/gpg_loopback.sh --output /usr/local/share/key.pgp.sig --detach-sig /usr/local/share/key.pgp; [[ "$?" != 0 ]]' \
+ 'GPG_PASSWORD=qwer1234 /usr/local/bin/gpg_loopback.sh --output /usr/local/share/key.pgp.sig --detach-sig /usr/local/share/key.pgp' \
+ 'gpg --verify /usr/local/share/key.pgp.sig /usr/local/share/key.pgp' \
  ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
  if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!"; exit 1; fi
 done
