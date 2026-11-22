@@ -107,6 +107,13 @@ docker run "--platform=${DOCKERX_PLATFORM}" -id "--name=${DOCKERX_CONTAINER}" "$
 if [[ $? -ne 0 ]]; then
  echo 'Run error!'; exit 1; fi
 
+for it in \
+ '[[ -e /etc/apt/sources.list.d/debian.sources ]]' \
+ '[[ ! -e /etc/apt/sources.list ]]' \
+ ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
+ if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!"; exit 1; fi
+done
+
 docker stop "${DOCKERX_CONTAINER}"
 docker rm -f "${DOCKERX_CONTAINER}"
 
