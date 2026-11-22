@@ -171,7 +171,7 @@ if [[ "${YES_OR_NOT}" == 'yes' ]]; then
   && git -C "${DOCKERX_WORKDIR}" commit -m "${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}" \
   && git -C "${DOCKERX_WORKDIR}" push
  if [[ $? -ne 0 ]]; then echo 'Git push error!' >&2; exit 1; fi
- echo "\"$${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" pushed to \"${DOCKERX_ORIGIN}\"."
+ echo "\"${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" pushed to \"${DOCKERX_ORIGIN}\"."
 fi
 
 #
@@ -180,7 +180,8 @@ echo "Push tag \"${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}\" to \"${DOCKERX_ORI
 read -r YES_OR_NOT
 
 if [[ "${YES_OR_NOT}" == 'yes' ]]; then
- git -C "${DOCKERX_WORKDIR}" tag "${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}" && git -C "${DOCKERX_WORKDIR}" push --tags
+ git -C "${DOCKERX_WORKDIR}" tag "${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}" \
+  && git -C "${DOCKERX_WORKDIR}" push origin tag "${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}"
  if [[ $? -ne 0 ]]; then echo "Git push \"${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}\" error!" >&2; exit 1; fi
  git -C "${DOCKERX_WORKDIR}" log --graph --all -2
 fi
