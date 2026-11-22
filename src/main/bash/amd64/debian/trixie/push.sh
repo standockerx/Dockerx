@@ -107,6 +107,8 @@ docker run "--platform=${DOCKERX_PLATFORM}" -id "--name=${DOCKERX_CONTAINER}" "$
 if [[ $? -ne 0 ]]; then
  echo 'Run error!'; exit 1; fi
 
+#
+
 for it in \
  '[[ -s /etc/apt/sources.list.d/debian.sources ]]' \
  '[[ ! -e /etc/apt/sources.list ]]' \
@@ -121,9 +123,12 @@ for it in \
  'file --version' \
  'yq --version' \
  'rg --version' \
+ 'socat -V && [[ -x /usr/local/bin/socat_connect.sh ]] && [[ -x /usr/local/bin/socat_isolate.sh ]]' \
  ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
  if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!"; exit 1; fi
 done
+
+#
 
 docker cp "${DOCKERX_WORKDIR}/src/main/res/key.pgp" "${DOCKERX_CONTAINER}:/usr/local/share/key.pgp"
 if [[ $? -ne 0 ]]; then
