@@ -114,8 +114,8 @@ for it in \
  '[[ ! -e /etc/apt/sources.list ]]' \
  "[[ \"\$(cat /etc/flavor)\" == \"${DOCKERX_IMAGE_FLAVOR}\" ]]" \
  '/bin/bash --version && /usr/local/bin/bash --version' \
- 'curl --version && [[ "${OPENSSL_CONF}" == "/dev/null" ]]' \
- 'openssl version' \
+ 'curl --version' \
+ 'openssl version && [[ "${OPENSSL_CONF}" == "/dev/null" ]]' \
  'zip --version' \
  'xz --version' \
  'git --version' \
@@ -151,13 +151,25 @@ docker rm -f "${DOCKERX_CONTAINER}"
 
 #
 
-echo "Push \"${DOCKERX_IMAGE}\" to \"hub.docker.com\" repository?"
+echo "Push \"${DOCKERX_IMAGE}\" to \"${DOCKERX_HOST}\" repository?"
 read -r YES_OR_NOT
 
 if [[ "${YES_OR_NOT}" == 'yes' ]]; then
  docker push "${DOCKERX_IMAGE}"
- if [[ $? -ne 0 ]]; then echo 'Push error!' >&2; exit 1; fi
- echo "\"${DOCKERX_IMAGE}\" pushed."
+ if [[ $? -ne 0 ]]; then echo 'Docker push error!' >&2; exit 1; fi
+ echo "\"${DOCKERX_IMAGE}\" pushed to \"${DOCKERX_HOST}\"."
+fi
+
+#
+
+DOCKERX_ORIGIN="$(git remote get-url origin)" || exit 1
+echo "Push \"${DOCKERX_IMAGE}\" to \"${DOCKERX_ORIGIN}\" repository?"
+read -r YES_OR_NOT
+
+if [[ "${YES_OR_NOT}" == 'yes' ]]; then
+ git add . && git commit -m "${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}" && git push
+ if [[ $? -ne 0 ]]; then echo 'Git push error!' >&2; exit 1; fi
+ echo "\"${DOCKERX_IMAGE}\" pushed to \"${DOCKERX_ORIGIN}\"."
 fi
 
 #
