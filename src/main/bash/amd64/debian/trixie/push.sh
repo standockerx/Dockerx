@@ -108,8 +108,17 @@ if [[ $? -ne 0 ]]; then
  echo 'Run error!'; exit 1; fi
 
 for it in \
- '[[ -e /etc/apt/sources.list.d/debian.sources ]]' \
+ '[[ -s /etc/apt/sources.list.d/debian.sources ]]' \
  '[[ ! -e /etc/apt/sources.list ]]' \
+ "[[ \"\$(cat /etc/flavor)\" == \"${DOCKERX_IMAGE_FLAVOR}\" ]]" \
+ 'curl --version' \
+ 'openssl version' \
+ 'gpg --version' \
+ 'zip --version' \
+ 'xz --version' \
+ 'git --version' \
+ 'xxd --version' \
+ 'file --version' \
  ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
  if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!"; exit 1; fi
 done
