@@ -49,6 +49,10 @@ run TMP_PATH="$(mktemp -d)/ripgrep-${RIPGREP_VERSION}.deb" \
 
 #
 
+copy 'gpg_loopback.sh' '/usr/local/bin/gpg_loopback.sh'
+
+#
+
 arg DOCKERX_IMAGE_FLAVOR
 
 run printf '%s' "${DOCKERX_IMAGE_FLAVOR}" > /etc/flavor
