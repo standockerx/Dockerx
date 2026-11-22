@@ -54,12 +54,14 @@ run mkdir -p "/opt/yq-${YQ_VERSION}/bin" \
 
 #
 
-run echo 'Not implemented'; exit 1 # todo
-
 env RIPGREP_VERSION='15.2.0'
-run TMP_PATH="$(mktemp -d)/ripgrep-${RIPGREP_VERSION}.deb" \
- && curl -m 16 -L --url "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep_${RIPGREP_VERSION}-1_amd64.deb" -o "${TMP_PATH}" \
- && apt-get install --no-install-recommends -y "${TMP_PATH}" && rm "${TMP_PATH}" && rg --version
+env RIPGREP_HOME="/opt/ripgrep-${RIPGREP_VERSION}"
+env PATH="${PATH}:${RIPGREP_HOME}/bin"
+run TMP_PATH="$(mktemp -d)" \
+ && curl -m 16 -L --url "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-aarch64-unknown-linux-gnu.tar.gz" \
+  -o "${TMP_PATH}/ripgrep-${RIPGREP_VERSION}.tar.gz" \
+ && tar -xf "${TMP_PATH}/ripgrep-${RIPGREP_VERSION}.tar.gz" -C "${TMP_PATH}" \
+ && mkdir -p "${RIPGREP_HOME}/bin/" && mv "${TMP_PATH}/ripgrep-${RIPGREP_VERSION}-aarch64-unknown-linux-gnu/rg" "${RIPGREP_HOME}/bin/rg" && rm -rf "${TMP_PATH}"
 
 #
 
