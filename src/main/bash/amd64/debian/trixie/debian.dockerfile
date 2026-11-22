@@ -15,8 +15,6 @@ run apt-get install --no-install-recommends -y curl && curl --version
 env OPENSSL_CONF='/dev/null'
 run apt-get install --no-install-recommends -y openssl && openssl version
 
-run apt-get install --no-install-recommends -y gpg gpg-agent && gpg --version
-
 run apt-get install --no-install-recommends -y zip unzip && zip --version
 
 run apt-get install --no-install-recommends -y xz-utils && xz --version
@@ -26,6 +24,19 @@ run apt-get install --no-install-recommends -y git && git --version
 run apt-get install --no-install-recommends -y xxd && xxd --version
 
 run apt-get install --no-install-recommends -y file && file --version
+
+#
+
+run apt-get install --no-install-recommends -y gpg gpg-agent && gpg --version
+
+copy 'gpg_loopback.sh' '/usr/local/bin/gpg_loopback.sh'
+
+#
+
+run apt-get install --no-install-recommends -y socat && socat -V
+
+copy 'socat_connect.sh' '/usr/local/bin/socat_connect.sh'
+copy 'socat_isolate.sh' '/usr/local/bin/socat_isolate.sh'
 
 #
 
@@ -47,10 +58,6 @@ env RIPGREP_VERSION='15.2.0'
 run TMP_PATH="$(mktemp -d)/ripgrep-${RIPGREP_VERSION}.deb" \
  && curl -m 16 -L --url "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep_${RIPGREP_VERSION}-1_amd64.deb" -o "${TMP_PATH}" \
  && apt-get install --no-install-recommends -y "${TMP_PATH}" && rm "${TMP_PATH}" && rg --version
-
-#
-
-copy 'gpg_loopback.sh' '/usr/local/bin/gpg_loopback.sh'
 
 #
 
