@@ -26,4 +26,6 @@ run apt-get install --no-install-recommends -y file && file --version
 
 #
 
-run echo 'Not implemented!' >&2; exit 1 # todo
+arg DOCKERX_IMAGE_FLAVOR
+
+run printf '%s' "${DOCKERX_IMAGE_FLAVOR}" > /etc/flavor
