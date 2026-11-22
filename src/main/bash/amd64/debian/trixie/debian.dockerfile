@@ -10,4 +10,4 @@ run apt-get update \
  && apt-get upgrade -y \
  && apt autoremove
 
-run echo 'Not implemented!'; exit 1 # todo
+run echo 'Not implemented!' >&2; exit 1 # todo
