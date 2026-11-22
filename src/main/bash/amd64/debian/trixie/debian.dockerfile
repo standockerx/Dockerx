@@ -1,10 +1,6 @@
 from docker.io/amd64/debian:trixie-20261104-slim
 
-run rm '/etc/apt/sources.list.d/debian.sources'
-
-run echo 'deb https://deb.debian.org/debian trixie main' > /etc/apt/sources.list; \
- echo 'deb https://deb.debian.org/debian trixie-updates main' >> /etc/apt/sources.list; \
- echo 'deb https://security.debian.org/debian-security trixie-security main' >> /etc/apt/sources.list
+copy 'debian.sources' '/etc/apt/sources.list.d/debian.sources'
 
 run apt-get update \
  && apt-get upgrade -y \
