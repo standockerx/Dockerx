@@ -105,7 +105,7 @@ docker rm -f "${DOCKERX_CONTAINER}"
 docker run "--platform=${DOCKERX_PLATFORM}" -id "--name=${DOCKERX_CONTAINER}" "${DOCKERX_IMAGE}"
 
 if [[ $? -ne 0 ]]; then
- echo 'Run error!'; exit 1; fi
+ echo 'Run error!' >&2; exit 1; fi
 
 #
 
@@ -125,14 +125,14 @@ for it in \
  'rg --version' \
  'socat -V && [[ -x /usr/local/bin/socat_connect.sh ]] && [[ -x /usr/local/bin/socat_isolate.sh ]]' \
  ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
- if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!"; exit 1; fi
+ if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!" >&2; exit 1; fi
 done
 
 #
 
 docker cp "${DOCKERX_WORKDIR}/src/main/res/key.pgp" "${DOCKERX_CONTAINER}:/usr/local/share/key.pgp"
 if [[ $? -ne 0 ]]; then
- echo 'Copy error!'; exit 1; fi
+ echo 'Copy error!' >&2; exit 1; fi
 
 for it in \
  'gpg --version' \
@@ -143,11 +143,22 @@ for it in \
  'GPG_PASSWORD=qwer1234 /usr/local/bin/gpg_loopback.sh --output /usr/local/share/key.pgp.sig --detach-sig /usr/local/share/key.pgp' \
  'gpg --verify /usr/local/share/key.pgp.sig /usr/local/share/key.pgp' \
  ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
- if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!"; exit 1; fi
+ if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!" >&2; exit 1; fi
 done
 
 docker stop "${DOCKERX_CONTAINER}"
 docker rm -f "${DOCKERX_CONTAINER}"
+
+#
+
+echo "Push \"${DOCKERX_IMAGE}\" to \"hub.docker.com\" repository?"
+read -r YES_OR_NOT
+
+if [[ "${YES_OR_NOT}" == 'yes' ]]; then
+ docker push "${DOCKERX_IMAGE}"
+ if [[ $? -ne 0 ]]; then echo 'Push error!' >&2; exit 1; fi
+ echo "\"${DOCKERX_IMAGE}\" pushed."
+fi
 
 #
 
