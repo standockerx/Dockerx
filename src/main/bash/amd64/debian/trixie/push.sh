@@ -162,7 +162,7 @@ fi
 
 #
 
-DOCKERX_ORIGIN="$(git remote get-url origin)" || exit 1
+DOCKERX_ORIGIN="$(git -C "${DOCKERX_WORKDIR}" remote get-url origin)" || exit 1
 echo "Push \"${DOCKERX_IMAGE}\" to \"${DOCKERX_ORIGIN}\" repository?"
 read -r YES_OR_NOT
 
