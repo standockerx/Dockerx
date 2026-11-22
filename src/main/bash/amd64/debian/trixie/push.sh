@@ -187,5 +187,3 @@ if [[ "${YES_OR_NOT}" == 'yes' ]]; then
 fi
 
 #
-
-echo 'Not implemented!' >&2; exit 1 # todo
