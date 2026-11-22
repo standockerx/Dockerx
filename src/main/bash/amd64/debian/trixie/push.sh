@@ -97,4 +97,19 @@ if [[ $? -ne 0 ]]; then
 
 #
 
+DOCKERX_CONTAINER="container.${DOCKERX_REPOSITORY}"
+
+docker stop "${DOCKERX_CONTAINER}"
+docker rm -f "${DOCKERX_CONTAINER}"
+
+docker run "--platform=${DOCKERX_PLATFORM}" -id "--name=${DOCKERX_CONTAINER}" "${DOCKERX_IMAGE}"
+
+if [[ $? -ne 0 ]]; then
+ echo 'Run error!'; exit 1; fi
+
+docker stop "${DOCKERX_CONTAINER}"
+docker rm -f "${DOCKERX_CONTAINER}"
+
+#
+
 echo 'Not implemented!' >&2; exit 1 # todo
