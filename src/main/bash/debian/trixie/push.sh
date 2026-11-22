@@ -1,5 +1,6 @@
 #!/usr/local/bin/bash
 
+unset DOCKERX_ARCH
 unset DOCKERX_CACHE
 unset DOCKERX_PROGRESS
 unset DOCKERX_WORKDIR
@@ -7,6 +8,9 @@ unset DOCKERX_WORKDIR
 while [[ $# -gt 0 ]]; do
  if [[ $# -lt 2 ]]; then echo 'Wrong flags!' >&2; exit 1; fi
  case "$1" in
+  '--arch')
+   if [[ -v DOCKERX_ARCH ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
+   DOCKERX_ARCH="$2"; shift 2;;
   '--cache')
    if [[ -v DOCKERX_CACHE ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
    DOCKERX_CACHE="$2"; shift 2;;
@@ -19,6 +23,14 @@ while [[ $# -gt 0 ]]; do
   *) echo "\"$1\" is not supported!" >&2; exit 1;;
  esac
 done
+
+#
+
+case "${DOCKERX_ARCH}" in
+ 'amd64'|'arm64');;
+ '') echo 'No arch!' >&2; exit 1;;
+ *) echo 'Wrong arch!' >&2; exit 1;;
+esac
 
 #
 
@@ -66,7 +78,6 @@ fi
 
 #
 
-DOCKERX_ARCH='amd64'
 DOCKERX_PLATFORM="linux/${DOCKERX_ARCH}"
 DOCKERX_HOST='docker.io'
 DOCKERX_NAMESPACE='kepocnhh'
