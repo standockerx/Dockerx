@@ -89,7 +89,7 @@ if [[ "${DOCKERX_CACHE}" != 'true' ]]; then
 fi
 
 docker build "${DOCKERX_ARGS[@]}"  \
- --file "${DOCKERX_WORKDIR}/src/main/bash/${DOCKERX_SUBJECT_PATH}/${DOCKERX_SUBJECT}.dockerfile" \
+ --file "${DOCKERX_WORKDIR}/src/main/bash/${DOCKERX_SUBJECT_PATH}/${DOCKERX_REPOSITORY}.dockerfile" \
  --tag "${DOCKERX_IMAGE}" "${DOCKERX_WORKDIR}/src/main/bash/${DOCKERX_SUBJECT_PATH}/"
 
 if [[ $? -ne 0 ]]; then
