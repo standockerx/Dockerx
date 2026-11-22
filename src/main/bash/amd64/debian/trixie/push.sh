@@ -112,7 +112,7 @@ for it in \
  '[[ ! -e /etc/apt/sources.list ]]' \
  "[[ \"\$(cat /etc/flavor)\" == \"${DOCKERX_IMAGE_FLAVOR}\" ]]" \
  '/bin/bash --version && /usr/local/bin/bash --version' \
- 'curl --version' \
+ 'curl --version && [[ "${OPENSSL_CONF}" == "/dev/null" ]]' \
  'openssl version' \
  'zip --version' \
  'xz --version' \

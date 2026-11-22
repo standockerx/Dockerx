@@ -12,6 +12,7 @@ run apt-get update && apt-get upgrade -y && apt autoremove
 
 run apt-get install --no-install-recommends -y curl && curl --version
 
+env OPENSSL_CONF='/dev/null'
 run apt-get install --no-install-recommends -y openssl && openssl version
 
 run apt-get install --no-install-recommends -y gpg gpg-agent && gpg --version
