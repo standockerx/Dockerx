@@ -1,20 +1,34 @@
 #!/usr/local/bin/bash
 
+unset DOCKERX_CACHE
 unset DOCKERX_PROGRESS
 unset DOCKERX_WORKDIR
 
 while [[ $# -gt 0 ]]; do
  if [[ $# -lt 2 ]]; then echo 'Wrong flags!' >&2; exit 1; fi
  case "$1" in
-  '--workdir')
-   if [[ -v DOCKERX_WORKDIR ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
-   DOCKERX_WORKDIR="$2"; shift 2;;
+  '--cache')
+   if [[ -v DOCKERX_CACHE ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
+   DOCKERX_CACHE="$2"; shift 2;;
   '--progress')
    if [[ -v DOCKERX_PROGRESS ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
    DOCKERX_PROGRESS="$2"; shift 2;;
+  '--workdir')
+   if [[ -v DOCKERX_WORKDIR ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
+   DOCKERX_WORKDIR="$2"; shift 2;;
   *) echo "\"$1\" is not supported!" >&2; exit 1;;
  esac
 done
+
+#
+
+if [[ -v DOCKERX_CACHE ]]; then
+ case "${DOCKERX_CACHE}" in
+  'true');;
+  '') echo 'No cache!' >&2; exit 1;;
+  *) echo 'Wrong cache!' >&2; exit 1;;
+ esac
+fi
 
 #
 
@@ -65,9 +79,17 @@ DOCKERX_IMAGE_FLAVOR='a'
 DOCKERX_IMAGE_TAG="${DOCKERX_IMAGE_VERSION_CODE}-${DOCKERX_IMAGE_FLAVOR}"
 DOCKERX_IMAGE="${DOCKERX_HOST}/${DOCKERX_NAMESPACE}/${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}"
 
-docker build --no-cache "--progress=${DOCKERX_PROGRESS}" \
- -f "${DOCKERX_WORKDIR}/src/main/bash/${DOCKERX_SUBJECT_PATH}/${DOCKERX_SUBJECT}.dockerfile" \
- "--platform=${DOCKERX_PLATFORM}" -t "${DOCKERX_IMAGE}" "${DOCKERX_WORKDIR}/src/main/bash/${DOCKERX_SUBJECT_PATH}/"
+DOCKERX_ARGS=()
+DOCKERX_ARGS+=("--progress=${DOCKERX_PROGRESS}")
+DOCKERX_ARGS+=("--platform=${DOCKERX_PLATFORM}")
+
+if [[ "${DOCKERX_CACHE}" != 'true' ]]; then
+ DOCKERX_ARGS+=('--no-cache')
+fi
+
+docker build "${DOCKERX_ARGS[@]}"  \
+ --file "${DOCKERX_WORKDIR}/src/main/bash/${DOCKERX_SUBJECT_PATH}/${DOCKERX_SUBJECT}.dockerfile" \
+ --tag "${DOCKERX_IMAGE}" "${DOCKERX_WORKDIR}/src/main/bash/${DOCKERX_SUBJECT_PATH}/"
 
 if [[ $? -ne 0 ]]; then
  echo 'Docker build error!' >&2; exit 1; fi
