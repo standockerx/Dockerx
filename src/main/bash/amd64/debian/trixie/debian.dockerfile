@@ -34,6 +34,15 @@ shell ["/usr/local/bin/bash", "-c"]
 
 #
 
+env YQ_VERSION='4.54.3'
+env PATH="${PATH}:/opt/yq-${YQ_VERSION}/bin"
+run mkdir -p "/opt/yq-${YQ_VERSION}/bin" \
+ && curl -m 16 -L --url "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" \
+  -o "/opt/yq-${YQ_VERSION}/bin/yq" \
+ && chmod +x "/opt/yq-${YQ_VERSION}/bin/yq" && yq --version
+
+#
+
 arg DOCKERX_IMAGE_FLAVOR
 
 run printf '%s' "${DOCKERX_IMAGE_FLAVOR}" > /etc/flavor

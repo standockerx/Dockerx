@@ -111,6 +111,7 @@ for it in \
  '[[ -s /etc/apt/sources.list.d/debian.sources ]]' \
  '[[ ! -e /etc/apt/sources.list ]]' \
  "[[ \"\$(cat /etc/flavor)\" == \"${DOCKERX_IMAGE_FLAVOR}\" ]]" \
+ '/bin/bash --version && /usr/local/bin/bash --version' \
  'curl --version' \
  'openssl version' \
  'gpg --version' \
@@ -119,6 +120,7 @@ for it in \
  'git --version' \
  'xxd --version' \
  'file --version' \
+ 'yq --version' \
  ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
  if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!"; exit 1; fi
 done
