@@ -151,19 +151,19 @@ docker rm -f "${DOCKERX_CONTAINER}"
 
 #
 
-echo "Push \"${DOCKERX_IMAGE}\" to \"${DOCKERX_HOST}\" repository?"
+echo "Push \"${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" to \"${DOCKERX_HOST}\" repository?"
 read -r YES_OR_NOT
 
 if [[ "${YES_OR_NOT}" == 'yes' ]]; then
  docker push "${DOCKERX_IMAGE}"
  if [[ $? -ne 0 ]]; then echo 'Docker push error!' >&2; exit 1; fi
- echo "\"${DOCKERX_IMAGE}\" pushed to \"${DOCKERX_HOST}\"."
+ echo "\"${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" pushed to \"${DOCKERX_HOST}\"."
 fi
 
 #
 
 DOCKERX_ORIGIN="$(git -C "${DOCKERX_WORKDIR}" remote get-url --push origin)" || exit 1
-echo "Push \"${DOCKERX_IMAGE}\" to \"${DOCKERX_ORIGIN}\" repository?"
+echo "Push \"${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" to \"${DOCKERX_ORIGIN}\" repository?"
 read -r YES_OR_NOT
 
 if [[ "${YES_OR_NOT}" == 'yes' ]]; then
@@ -171,7 +171,18 @@ if [[ "${YES_OR_NOT}" == 'yes' ]]; then
   && git -C "${DOCKERX_WORKDIR}" commit -m "${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}" \
   && git -C "${DOCKERX_WORKDIR}" push
  if [[ $? -ne 0 ]]; then echo 'Git push error!' >&2; exit 1; fi
- echo "\"${DOCKERX_IMAGE}\" pushed to \"${DOCKERX_ORIGIN}\"."
+ echo "\"$${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" pushed to \"${DOCKERX_ORIGIN}\"."
+fi
+
+#
+
+echo "Push tag \"${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}\" to \"${DOCKERX_ORIGIN}\" repository?"
+read -r YES_OR_NOT
+
+if [[ "${YES_OR_NOT}" == 'yes' ]]; then
+ git -C "${DOCKERX_WORKDIR}" tag "${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}" && git -C "${DOCKERX_WORKDIR}" push --tags
+ if [[ $? -ne 0 ]]; then echo "Git push \"${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}\" error!" >&2; exit 1; fi
+ git -C "${DOCKERX_WORKDIR}" log --graph --all -2
 fi
 
 #
