@@ -123,6 +123,8 @@ if [[ $? -ne 0 ]]; then
 for it in \
  "[[ \"\$(cat /etc/flavor)\" == \"${DOCKERX_IMAGE_FLAVOR}\" ]]" \
  'java --version' \
+ 'javac --version' \
+ 'keytool --version' \
  ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
  if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!" >&2; exit 1; fi
 done
