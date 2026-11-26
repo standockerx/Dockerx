@@ -1,0 +1,172 @@
+#!/usr/local/bin/bash
+
+unset DOCKERX_ARCH
+unset DOCKERX_CACHE
+unset DOCKERX_PROGRESS
+unset DOCKERX_WORKDIR
+
+while [[ $# -gt 0 ]]; do
+ if [[ $# -lt 2 ]]; then echo 'Wrong flags!' >&2; exit 1; fi
+ case "$1" in
+  '--arch')
+   if [[ -v DOCKERX_ARCH ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
+   DOCKERX_ARCH="$2"; shift 2;;
+  '--cache')
+   if [[ -v DOCKERX_CACHE ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
+   DOCKERX_CACHE="$2"; shift 2;;
+  '--progress')
+   if [[ -v DOCKERX_PROGRESS ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
+   DOCKERX_PROGRESS="$2"; shift 2;;
+  '--workdir')
+   if [[ -v DOCKERX_WORKDIR ]]; then echo "\"$1\" already used!" >&2; exit 1; fi
+   DOCKERX_WORKDIR="$2"; shift 2;;
+  *) echo "\"$1\" is not supported!" >&2; exit 1;;
+ esac
+done
+
+#
+
+case "${DOCKERX_ARCH}" in
+ 'amd64'|'arm64');;
+ '') echo 'No arch!' >&2; exit 1;;
+ *) echo 'Wrong arch!' >&2; exit 1;;
+esac
+
+#
+
+if [[ -v DOCKERX_CACHE ]]; then
+ case "${DOCKERX_CACHE}" in
+  'true');;
+  '') echo 'No cache!' >&2; exit 1;;
+  *) echo 'Wrong cache!' >&2; exit 1;;
+ esac
+fi
+
+#
+
+if [[ -v DOCKERX_PROGRESS ]]; then
+ case "${DOCKERX_PROGRESS}" in
+  'auto'|'plain');;
+  '') echo 'No progress!' >&2; exit 1;;
+  *) echo 'Wrong progress!' >&2; exit 1;;
+ esac
+else
+ DOCKERX_PROGRESS='auto'
+fi
+
+#
+
+if [[ ! -v DOCKERX_WORKDIR ]]; then
+ DOCKERX_WORKDIR="$(pwd)"
+ if [[ $? != 0 ]]; then echo 'Get workdir error!' >&2; exit 1; fi
+fi
+
+if [[ -z "${DOCKERX_WORKDIR}" ]]; then
+ echo 'No workdir!' >&2; exit 1
+elif [[ -L "${DOCKERX_WORKDIR}" ]]; then
+ echo "\"${DOCKERX_WORKDIR}\" is a symlink!" >&2; exit 1
+fi
+
+DOCKERX_WORKDIR="$(realpath -- "${DOCKERX_WORKDIR}")"
+if [[ $? != 0 ]]; then
+ echo 'Realpath workdir error!' >&2; exit 1
+elif [[ ! -e "${DOCKERX_WORKDIR}" ]]; then
+ echo "\"${DOCKERX_WORKDIR}\" does not exist!" >&2; exit 1
+elif [[ ! -d "${DOCKERX_WORKDIR}" ]]; then
+ echo "\"${DOCKERX_WORKDIR}\" is not a dir!" >&2; exit 1
+fi
+
+#
+
+DOCKERX_PLATFORM="linux/${DOCKERX_ARCH}"
+DOCKERX_HOST='docker.io'
+DOCKERX_NAMESPACE='kepocnhh'
+DOCKERX_SUBJECT='java'
+DOCKERX_SUBJECT_VERSION='21'
+DOCKERX_SUBJECT_PATH="${DOCKERX_SUBJECT}/${DOCKERX_SUBJECT_VERSION}"
+DOCKERX_REPOSITORY="${DOCKERX_SUBJECT}-${DOCKERX_SUBJECT_VERSION}-${DOCKERX_ARCH}"
+DOCKERX_IMAGE_VERSION_CODE=1
+DOCKERX_IMAGE_FLAVOR='a'
+DOCKERX_IMAGE_TAG="${DOCKERX_IMAGE_VERSION_CODE}-${DOCKERX_IMAGE_FLAVOR}"
+DOCKERX_IMAGE="${DOCKERX_HOST}/${DOCKERX_NAMESPACE}/${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}"
+
+DOCKERX_ARGS=()
+DOCKERX_ARGS+=("--progress=${DOCKERX_PROGRESS}")
+DOCKERX_ARGS+=("--platform=${DOCKERX_PLATFORM}")
+DOCKERX_ARGS+=('--build-arg' "DOCKERX_IMAGE_FLAVOR=${DOCKERX_IMAGE_FLAVOR}")
+
+if [[ "${DOCKERX_CACHE}" != 'true' ]]; then
+ DOCKERX_ARGS+=('--no-cache')
+fi
+
+docker build "${DOCKERX_ARGS[@]}"  \
+ --file "${DOCKERX_WORKDIR}/src/main/bash/${DOCKERX_SUBJECT_PATH}/${DOCKERX_REPOSITORY}.dockerfile" \
+ --tag "${DOCKERX_IMAGE}" "${DOCKERX_WORKDIR}/src/main/bash/${DOCKERX_SUBJECT_PATH}/"
+
+if [[ $? -ne 0 ]]; then
+ echo 'Docker build error!' >&2; exit 1; fi
+
+#
+
+DOCKERX_CONTAINER="container.${DOCKERX_REPOSITORY}"
+
+docker stop "${DOCKERX_CONTAINER}"
+docker rm -f "${DOCKERX_CONTAINER}"
+
+docker run "--platform=${DOCKERX_PLATFORM}" -id "--name=${DOCKERX_CONTAINER}" "${DOCKERX_IMAGE}"
+
+if [[ $? -ne 0 ]]; then
+ echo 'Run error!' >&2; exit 1; fi
+
+#
+
+for it in \
+ "[[ \"\$(cat /etc/flavor)\" == \"${DOCKERX_IMAGE_FLAVOR}\" ]]" \
+ 'java --version' \
+ ; do docker exec "${DOCKERX_CONTAINER}" /usr/local/bin/bash -c "${it}"
+ if [[ $? -ne 0 ]]; then echo "Exec \"${it}\" error!" >&2; exit 1; fi
+done
+
+#
+
+docker stop "${DOCKERX_CONTAINER}"
+docker rm -f "${DOCKERX_CONTAINER}"
+
+#
+
+echo "Push \"${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" to \"${DOCKERX_HOST}\" repository?"
+read -r YES_OR_NOT
+
+if [[ "${YES_OR_NOT}" == 'yes' ]]; then
+ docker push "${DOCKERX_IMAGE}"
+ if [[ $? -ne 0 ]]; then echo 'Docker push error!' >&2; exit 1; fi
+ echo "\"${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" pushed to \"${DOCKERX_HOST}\"."
+fi
+
+#
+
+DOCKERX_ORIGIN="$(git -C "${DOCKERX_WORKDIR}" remote get-url --push origin)" || exit 1
+echo "Push \"${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" to \"${DOCKERX_ORIGIN}\" repository?"
+read -r YES_OR_NOT
+
+if [[ "${YES_OR_NOT}" == 'yes' ]]; then
+ git -C "${DOCKERX_WORKDIR}" add . \
+  && git -C "${DOCKERX_WORKDIR}" commit -m "${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}" \
+  && git -C "${DOCKERX_WORKDIR}" push
+ if [[ $? -ne 0 ]]; then echo 'Git push error!' >&2; exit 1; fi
+ echo "\"${DOCKERX_REPOSITORY}:${DOCKERX_IMAGE_TAG}\" pushed to \"${DOCKERX_ORIGIN}\"."
+fi
+
+#
+
+echo "Push tag \"${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}\" to \"${DOCKERX_ORIGIN}\" repository?"
+read -r YES_OR_NOT
+
+if [[ "${YES_OR_NOT}" == 'yes' ]]; then
+ git -C "${DOCKERX_WORKDIR}" tag "${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}" \
+  && git -C "${DOCKERX_WORKDIR}" push origin tag "${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}"
+ if [[ $? -ne 0 ]]; then echo "Git push \"${DOCKERX_REPOSITORY}/${DOCKERX_IMAGE_TAG}\" error!" >&2; exit 1; fi
+ git -C "${DOCKERX_WORKDIR}" log --graph --all -2
+fi
+
+#
